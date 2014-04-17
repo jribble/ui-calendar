@@ -186,25 +186,35 @@ angular.module('ui.calendar', [])
 
     return {
       restrict: 'A',
-      scope: {eventSources:'=ngModel',calendarWatchEvent: '&'},
+      scope: {eventSources:'=ngModel',resourceSources:'=ngResourceModel',calendarWatchEvent: '&'},
       controller: 'uiCalendarCtrl',
       link: function(scope, elm, attrs, controller) {
 
         var sources = scope.eventSources,
+            resources = scope.resourceSources,
             sourcesChanged = false,
             eventSourcesWatcher = controller.changeWatcher(sources, controller.sourcesFingerprint),
             eventsWatcher = controller.changeWatcher(controller.allEvents, controller.eventsFingerprint),
             options = null;
 
+
+        scope.$on('resize', function doResize () {
+            scope.calendar.fullCalendar('render');
+        });
+        
         function getOptions(){
+          options = { eventSources: sources, resources: resources };
+
+          options.height = function() {
+            return scope.calendar.parent().innerHeight();
+          };
+
           var calendarSettings = attrs.uiCalendar ? scope.$parent.$eval(attrs.uiCalendar) : {},
               fullCalendarConfig;
 
           fullCalendarConfig = controller.getFullCalendarConfig(calendarSettings, uiCalendarConfig);
 
-          options = { eventSources: sources };
           angular.extend(options, fullCalendarConfig);
-
           var options2 = {};
           for(var o in options){
             if(o !== 'eventSources'){
